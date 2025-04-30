@@ -9,7 +9,7 @@ app.use(cors());
 
 // Endpoint 1: Basic test
 app.get('/ping', (req, res) => {
-  res.json({ message: 'Pong from backend' });
+  res.json({ message: 'Pong from backend, Goodnight too' });
   console.log('Ping received from frontend, Pong sent to frontend');
 });
 

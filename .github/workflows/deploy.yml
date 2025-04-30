@@ -21,7 +21,7 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST << 'EOF'
-            cd /home/ubuntu/your-project-folder
+            cd /home/ubuntu/deploy-demo
             git pull origin main
             docker-compose down
             docker-compose up -d --build
