@@ -44,7 +44,7 @@ jobs:
     # ----- Upload Artifacts -----
     - name: Sync project to EC2
       run: |
-        rsync -avz -e "ssh -i key.pem -o StrictHostKeyChecking=no" ./frontend/dist ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/frontend/
+        rsync -avz ./frontend ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/
         rsync -avz -e "ssh -i key.pem -o StrictHostKeyChecking=no" ./backend ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/
         rsync -avz -e "ssh -i key.pem -o StrictHostKeyChecking=no" docker-compose.yml ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/
 
