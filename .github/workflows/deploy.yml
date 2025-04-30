@@ -35,16 +35,10 @@ jobs:
         echo "${{ secrets.EC2_KEY }}" > key.pem
         chmod 600 key.pem
 
-    # ----- Clean old frontend files on EC2 -----
-    - name: Remove old frontend build on EC2
-      run: |
-        ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "rm -rf /home/ubuntu/deploy-demo/frontend/*"
-
-
     # ----- Upload Artifacts -----
     - name: Sync project to EC2
       run: |
-        rsync -avz ./frontend ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/
+        rsync -avz -e "ssh -i key.pem -o StrictHostKeyChecking=no" ./frontend/dist ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/frontend/
         rsync -avz -e "ssh -i key.pem -o StrictHostKeyChecking=no" ./backend ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/
         rsync -avz -e "ssh -i key.pem -o StrictHostKeyChecking=no" docker-compose.yml ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/
 
