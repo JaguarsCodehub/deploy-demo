@@ -3,30 +3,46 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - main  # Trigger deployment when code is pushed to main
+      - main  # or your deploy branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Set up SSH key
-        run: |
-          echo "${{ secrets.EC2_KEY }}" > key.pem
-          chmod 600 key.pem
+    # ----- Frontend Build -----
+    - name: Install and Build Frontend
+      working-directory: ./frontend
+      run: |
+        npm ci
+        npm run build
 
-      - name: Deploy to EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST << 'EOF'
-            cd /home/ubuntu/deploy-demo
-            git pull origin main
-            docker-compose down
-            docker-compose up -d --build
-          EOF
-        env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_USER: ${{ secrets.EC2_USER }}
-          EC2_KEY: ${{ secrets.EC2_KEY }}
+    # ----- Backend Install (Optional Build Step) -----
+    - name: Install Backend Dependencies
+      working-directory: ./backend
+      run: npm ci
+
+    # ----- Save EC2 Key -----
+    - name: Set up SSH key
+      run: |
+        echo "${{ secrets.EC2_KEY }}" > key.pem
+        chmod 600 key.pem
+
+    # ----- Upload Artifacts -----
+    - name: Sync project to EC2
+      run: |
+        rsync -avz -e "ssh -i key.pem -o StrictHostKeyChecking=no" ./frontend/dist ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/frontend/
+        rsync -avz -e "ssh -i key.pem -o StrictHostKeyChecking=no" ./backend ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/
+        rsync -avz -e "ssh -i key.pem -o StrictHostKeyChecking=no" docker-compose.yml ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/
+
+    # ----- SSH and Restart -----
+    - name: SSH into EC2 and restart Docker
+      run: |
+        ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          cd /home/ubuntu/deploy-demo
+          docker-compose down
+          docker-compose up -d --build
+        EOF
