@@ -19,7 +19,6 @@ jobs:
       run: |
         rm -rf node_modules package-lock.json
         npm install --legacy-peer-deps
-
     - name: Build frontend
       working-directory: ./frontend
       run: npm run build
@@ -34,14 +33,12 @@ jobs:
       run: |
         echo "${{ secrets.EC2_KEY }}" > key.pem
         chmod 600 key.pem
-
     # ----- Upload Artifacts -----
     - name: Sync project to EC2
       run: |
         rsync -avz -e "ssh -i key.pem -o StrictHostKeyChecking=no" ./frontend/dist ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/frontend/
         rsync -avz -e "ssh -i key.pem -o StrictHostKeyChecking=no" ./backend ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/
         rsync -avz -e "ssh -i key.pem -o StrictHostKeyChecking=no" docker-compose.yml ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/deploy-demo/
-
     # ----- SSH and Restart -----
     - name: SSH into EC2 and restart Docker
       run: |
