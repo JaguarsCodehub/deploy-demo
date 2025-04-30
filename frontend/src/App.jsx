@@ -7,7 +7,7 @@ function App() {
   return (
     <>
       <div>
-        <h1>Hello from Jyotindra</h1>
+        <h1>Hello from Research Connect LLC</h1>
         <BackendFetcher />
       </div>
     </>
